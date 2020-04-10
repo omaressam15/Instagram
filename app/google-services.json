@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "142999610667",
+    "firebase_url": "https://instagram-96077.firebaseio.com",
+    "project_id": "instagram-96077",
+    "storage_bucket": "instagram-96077.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:142999610667:android:729c50db97d2bbc37e916e",
+        "android_client_info": {
+          "package_name": "com.omaressam.instagram"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "142999610667-vqquvf7tuepoh2t8tlk143b1rb52r6sq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkEQGqXrGQ0E5fJ69qYUTscV46_hZm0Nk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "142999610667-vqquvf7tuepoh2t8tlk143b1rb52r6sq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
