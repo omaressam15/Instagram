@@ -1,6 +1,7 @@
 package com.omaressam.instagram.view.profile;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -13,7 +14,10 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.solver.widgets.Snapshot;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.util.Base64;
@@ -21,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +42,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.omaressam.instagram.R;
+import com.omaressam.instagram.databinding.FragmentProfileBinding;
 import com.omaressam.instagram.models.Post;
 import com.omaressam.instagram.models.User;
 import com.omaressam.instagram.utils.Utilities;
@@ -51,24 +57,27 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.UUID;
 
+import dmax.dialog.SpotsDialog;
+
 import static android.app.Activity.RESULT_OK;
 
 public class ProfileFragment extends Fragment implements View.OnClickListener {
 
-    private TextView nameProfile;
-    private TextView emailProfile;
     private ImageView imageProfile;
     private Button buttonProfile;
     private FirebaseAuth mAuth;
     private StorageReference mStorageRef;
-
+    private Button savePro;
     private FirebaseDatabase database;
     private DatabaseReference myRef;
-    private FirebaseUser user;
+    private FirebaseUser firebaseUser;
     private Bitmap selectedImage;
+    private User user;
     private Uri imageUri;
     private static final int GALLERY_PICK = 100;
     private static final int GALLERY_PERMISSION = 200;
+
+    private BookDetailsViewModel bookDetailsViewModel;
 
 
     public ProfileFragment() {
@@ -77,18 +86,28 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_profile, container, false);
-        satUpView(view);
-        return view;
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+
+        FragmentProfileBinding binding = DataBindingUtil.inflate(inflater,R.layout.fragment_profile, container, false);
+
+        bookDetailsViewModel = ViewModelProviders.of(requireActivity()).get(BookDetailsViewModel.class);
+
+        binding.setLifecycleOwner(getActivity());
+
+        binding.setViewModel(bookDetailsViewModel);
+
+
+        bookDetailsViewModel.user.setValue(user);
+
+        satUpView(binding.getRoot());
+
+        return binding.getRoot();
+
     }
 
     private void satUpView(View view) {
-        nameProfile = view.findViewById(R.id.profile_name_textView);
 
-        emailProfile = view.findViewById(R.id.profile_email_textView);
+
 
         imageProfile = view.findViewById(R.id.profile_imageView);
 
@@ -98,8 +117,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         buttonProfile.setOnClickListener(this);
 
+        savePro = view.findViewById(R.id.choseProfile);
+        savePro.setOnClickListener(this);
+
         mAuth = FirebaseAuth.getInstance();
-        user = mAuth.getCurrentUser();
+        firebaseUser = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
         checkAccessImagesPermission();
         get();
@@ -108,30 +130,35 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private void get() {
 
-        myRef = database.getReference("Users").child(user.getUid());
+        myRef = database.getReference("Users").child(firebaseUser.getUid());
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 User userObject = dataSnapshot.getValue(User.class);
-                assert userObject != null;
-                nameProfile.setText(userObject.getName());
-                emailProfile.setText(userObject.getEmail());
 
+
+                assert userObject != null;
                 Picasso.get()
                         .load(userObject.getImage())
                         .placeholder(R.drawable.img_placeholder)
                         .into(imageProfile);
-
                       //  savePostToDB(userObject);
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(getActivity(), "" + error.toException(), Toast.LENGTH_SHORT).show();
             }
         });
     }
-   /* private void savePost() {
+
+    private void savePost() {
+        final AlertDialog dialog = new SpotsDialog
+                .Builder()
+                .setContext(getContext())
+                .setTheme(R.style.Custom)
+                .build();
+        dialog.show();
+
         final String imagePath = UUID.randomUUID().toString() + ".jpg";
 
         mStorageRef.child("ImageProfile").child(imagePath).putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -143,20 +170,32 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                         String imageURL = uri.toString();
                         User user = new User();
                         user.setImage(imageURL);
-                        savePostToDB(user);
+
+                        Picasso.get()
+                                .load(user.getImage())
+                                .placeholder(R.drawable.img_placeholder)
+                                .into(imageProfile);
+
+                        savePostToDB(imageURL);
+                        dialog.dismiss();
+
                     }
                 });
             }
         });
     }
-    private void savePostToDB(User user) {
+
+    private void savePostToDB(String image) {
+
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("Users");
+        DatabaseReference myRef = database.getReference("Users").child(firebaseUser.getUid()).child("image");
         String id = myRef.push().getKey();
         assert id != null;
-        myRef.child(id).setValue(user);
+        myRef.setValue(image);
+
     }
-*/
+
+
     private String getResizedBase64(Bitmap bm, int newWidth, int newHeight) {
         int width = bm.getWidth();
         int height = bm.getHeight();
@@ -173,9 +212,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         return Base64.encodeToString(b, Base64.DEFAULT);
     }
     private void checkAccessImagesPermission() {
-        int permission = ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()), Manifest.permission.READ_EXTERNAL_STORAGE);
+        int permission = ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()),
+            ActivityCompat.requestPermissions(requireActivity(),
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, GALLERY_PERMISSION);
         } else {
             getImageFromGallery();
@@ -194,7 +233,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             try {
                 imageUri = data.getData();
                 assert imageUri != null;
-                InputStream imageStream = Objects.requireNonNull(getActivity()).getContentResolver().openInputStream(imageUri);
+                InputStream imageStream = requireActivity().getContentResolver().openInputStream(imageUri);
                 selectedImage = BitmapFactory.decodeStream(imageStream);
                 imageProfile.setImageBitmap(selectedImage);
             } catch (FileNotFoundException e) {
@@ -211,7 +250,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         if (v.getId() == R.id.profile_sign_out_button) {
             mAuth.signOut();
-            Objects.requireNonNull(getActivity()).startActivity(new Intent(getActivity(), SplashActivity.class));
+            requireActivity().startActivity(new Intent(getActivity(), SplashActivity.class));
+
+        }else {
+          if  (v.getId()==R.id.choseProfile) {
+                savePost();
+            }
         }
     }
 }
