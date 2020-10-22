@@ -1,6 +1,7 @@
 package com.omaressam.instagram.view.addPost;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -37,12 +38,15 @@ import com.google.firebase.storage.UploadTask;
 import com.omaressam.instagram.R;
 import com.omaressam.instagram.models.Post;
 import com.omaressam.instagram.utils.Utilities;
+import com.roger.catloadinglibrary.CatLoadingView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Objects;
 import java.util.UUID;
+
+import dmax.dialog.SpotsDialog;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -57,17 +61,15 @@ public class AddPostFragment extends Fragment implements View.OnClickListener {
 
     private ImageView Post;
 
-
     private Bitmap selectedImage;
-    private Uri imageUri;
 
+    private Uri imageUri;
 
     private EditText rightAboutImage;
 
     private NavController navController;
 
     private FirebaseAuth mAuth;
-
 
     private StorageReference mStorageRef;
 
@@ -82,6 +84,8 @@ public class AddPostFragment extends Fragment implements View.OnClickListener {
 
         View view = inflater.inflate(R.layout.fragment_add_posr, container, false);
         setupView(view);
+
+
         return view;
     }
 
@@ -100,10 +104,19 @@ public class AddPostFragment extends Fragment implements View.OnClickListener {
         rightAboutImage = view.findViewById(R.id.addPost_title_editText);
         mStorageRef = FirebaseStorage.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
+
         addPost.setOnClickListener(this);
 
     }
-    private void savePost() {
+
+       private void savePost() {
+        final AlertDialog dialog = new SpotsDialog
+                .Builder()
+                .setContext(getContext())
+                .setTheme(R.style.Custom)
+                .build();
+        dialog.show();
+
         final String title = rightAboutImage.getText().toString();
         final String imagePath = UUID.randomUUID().toString() + ".jpg";
 
@@ -123,12 +136,12 @@ public class AddPostFragment extends Fragment implements View.OnClickListener {
                         post.setUserId(currentUser.getUid());
                         post.setDate(Utilities.getCurrentDate());
                         savePostToDB(post);
+                        dialog.dismiss();
                     }
                 });
             }
         });
     }
-
 
 
     private void savePostToDB(Post post) {
@@ -138,9 +151,9 @@ public class AddPostFragment extends Fragment implements View.OnClickListener {
         assert id != null;
         myRef.child(id).setValue(post);
         Toast.makeText(getActivity(), "Post added!", Toast.LENGTH_SHORT).show();
-
         navController.popBackStack();
     }
+
 
     private void checkAccessImagesPermission() {
         int permission = ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()), Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -151,8 +164,6 @@ public class AddPostFragment extends Fragment implements View.OnClickListener {
             getImageFromGallery();
         }
     }
-
-
 
 
     private void getImageFromGallery() {
@@ -212,4 +223,6 @@ public class AddPostFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         savePost();
     }
+
+
 }

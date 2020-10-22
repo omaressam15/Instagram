@@ -51,7 +51,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
       registerUsers();
     }
 
-    private void registerUsers () {
+    public void registerUsers () {
 
         String Username = username.getText().toString();
         String Email = email.getText().toString();

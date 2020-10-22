@@ -108,6 +108,7 @@ public class HomeFragment extends Fragment implements OnLikeClicked {
 
     @Override
     public void onLikeClicked(final int position) {
+
         Post post = posts.get(position);
 
         final DatabaseReference likeRef = database.getReference("UserLikes").child(firebaseUser.getUid()).child(post.getId()).child("didLike");

@@ -39,11 +39,11 @@ public class PostHolder extends RecyclerView.ViewHolder {
     }
 
     void bindView(Post post) {
-    /*    Picasso.get()
+        Picasso.get()
             .load(post.getUser().getImage())
             .placeholder(R.drawable.img_placeholder)
               .into(imgAccount);
-*/
+
         Picasso.get()
                 .load(post.getImage())
                 .placeholder(R.drawable.img_placeholder)

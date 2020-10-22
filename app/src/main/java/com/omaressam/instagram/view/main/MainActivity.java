@@ -7,13 +7,18 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.omaressam.instagram.R;
+import com.roger.catloadinglibrary.CatLoadingView;
 
 import java.util.Objects;
+
+import dmax.dialog.SpotsDialog;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -29,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.BotNav);
         NavController navController = Navigation.findNavController(this,R.id.nav_host_fragment_container);
         NavigationUI.setupWithNavController(bottomNavigationView,navController);
+
     }
 
     @Override
@@ -39,4 +45,6 @@ public class MainActivity extends AppCompatActivity {
             fragment.onActivityResult(requestCode, resultCode, data);
         }
     }
+
+
 }
